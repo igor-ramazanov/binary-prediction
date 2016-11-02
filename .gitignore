@@ -1,4 +1,5 @@
 .idea/
 target/
+*.txt
 project/target/
 project/project/

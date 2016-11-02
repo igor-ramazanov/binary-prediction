@@ -8,13 +8,18 @@ object Bootloader {
   type FrequencyTable = mutable.Map[Binaries, Int]
 
   val ngrammSizes = Array(3, 4, 5)
-  val frequencyTables: Array[FrequencyTable] =
-    ngrammSizes.map(ngrammSize => mutable.Map[Binaries, Int]())
+  val frequencyTables: Array[FrequencyTable] = ngrammSizes.map(ngrammSize => mutable.Map[Binaries, Int]())
 
   //size of slice for accuracy calculating
   val metricSliceSize = 100
 
   def main(args: Array[String]): Unit = {
+    /*val random = new Random()
+    val randoms = (for (i <- 1 to 10000)
+      yield (math.abs(random.nextInt()) % 2).toString).flatten.mkString("")
+    Files.write(Paths.get("test.txt"), List(randoms))
+    System.exit(0)*/
+
     val trainingSetFilePath = args(0)
     val plotFilePath = args(1)
     val predictionsFilePath = args(2)
@@ -52,7 +57,8 @@ object Bootloader {
       case (char, probability) => char
     }.mapValues(probabilities => probabilities.map {
       case (char, probability) => probability
-    }.sum).maxBy {
+    }
+      .sum).maxBy {
       case (char, probability) => probability
     }._1
   }
@@ -66,16 +72,18 @@ object Bootloader {
     */
   def calcCharsProbability(prefix: Binaries,
                            frequencyTable: FrequencyTable): Array[(Char, Double)] = {
-    val frequencySum = frequencyTable.toList.map(_._2).sum.toDouble
-    val zeroEndedNgrammProbability = frequencyTable.getOrElse(prefix :+ '0', 0).toDouble / frequencySum
-    val oneEndedNgrammProbability = frequencyTable.getOrElse(prefix :+ '1', 0).toDouble / frequencySum
+    val zeroEndedNgrammCount = frequencyTable.getOrElse(prefix :+ '0', 0)
+    val oneEndedNgrammCount = frequencyTable.getOrElse(prefix :+ '1', 0)
+    val frequencySum = zeroEndedNgrammCount + oneEndedNgrammCount
+
+    val zeroEndedNgrammProbability = if (frequencySum != 0) zeroEndedNgrammCount / frequencySum else 0
+    val oneEndedNgrammProbability = if (frequencySum != 0) oneEndedNgrammCount / frequencySum else 0
 
     Array('1' -> oneEndedNgrammProbability, '0' -> zeroEndedNgrammProbability)
   }
 
   /**
     * Update each frequency table
-    *
     * @param binaries characters according that updates is done
     */
 
@@ -89,7 +97,6 @@ object Bootloader {
 
   /**
     * Calculate prediction for the slice
-    *
     * @param index     index of the last element of the calculating slice
     * @param sliceSize slice size
     * @return percent accuracy for the slice
