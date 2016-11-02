@@ -74,10 +74,10 @@ object Bootloader {
                            frequencyTable: FrequencyTable): Array[(Char, Double)] = {
     val zeroEndedNgrammCount = frequencyTable.getOrElse(prefix :+ '0', 0)
     val oneEndedNgrammCount = frequencyTable.getOrElse(prefix :+ '1', 0)
-    val frequencySum = zeroEndedNgrammCount + oneEndedNgrammCount
+    val totalCount = zeroEndedNgrammCount + oneEndedNgrammCount
 
-    val zeroEndedNgrammProbability = if (frequencySum != 0) zeroEndedNgrammCount / frequencySum else 0
-    val oneEndedNgrammProbability = if (frequencySum != 0) oneEndedNgrammCount / frequencySum else 0
+    val zeroEndedNgrammProbability = if (totalCount != 0) zeroEndedNgrammCount / totalCount else 0
+    val oneEndedNgrammProbability = if (totalCount != 0) oneEndedNgrammCount / totalCount else 0
 
     Array('1' -> oneEndedNgrammProbability, '0' -> zeroEndedNgrammProbability)
   }
@@ -96,7 +96,7 @@ object Bootloader {
   }
 
   /**
-    * Calculate prediction for the slice
+    * Calculate prediction accuracy for the slice
     * @param index     index of the last element of the calculating slice
     * @param sliceSize slice size
     * @return percent accuracy for the slice
