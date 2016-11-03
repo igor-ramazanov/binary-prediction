@@ -6,23 +6,16 @@ import scala.collection.mutable
 object Bootloader {
   type Binaries = List[Char]
   type FrequencyTable = mutable.Map[Binaries, Int]
-
-  val ngrammSizes = Array(3, 4, 5)
-  val frequencyTables: Array[FrequencyTable] = ngrammSizes.map(ngrammSize => mutable.Map[Binaries, Int]())
-
+  lazy val frequencyTables: Array[FrequencyTable] = ngrammSizes.map(ngrammSize => mutable.Map[Binaries, Int]())
+  var trainingSetFilePath: String = _
+  var plotFilePath: String = _
+  var predictionsFilePath: String = _
+  var ngrammSizes: Array[Int] = _
   //size of slice for accuracy calculating
-  val metricSliceSize = 100
+  var metricSliceSize: Int = _
 
   def main(args: Array[String]): Unit = {
-    /*val random = new Random()
-    val randoms = (for (i <- 1 to 10000)
-      yield (math.abs(random.nextInt()) % 2).toString).flatten.mkString("")
-    Files.write(Paths.get("test.txt"), List(randoms))
-    System.exit(0)*/
-
-    val trainingSetFilePath = args(0)
-    val plotFilePath = args(1)
-    val predictionsFilePath = args(2)
+    parseArgs(args)
 
     val trainingBinaries: Binaries = List(Files.readAllLines(Paths.get(trainingSetFilePath)).flatten: _*)
     val predictions = trainingBinaries.indices.map(i => {
@@ -40,6 +33,35 @@ object Bootloader {
 
     Files.write(Paths.get(plotFilePath), plotPoints)
     Files.write(Paths.get(predictionsFilePath), predictions.mkString("") :: Nil)
+  }
+
+  def parseArgs(args: Array[String]): Unit = {
+    if (args.length > 0 && args(0) == "--help") {
+      println("--training-set\t\t\tpath to input file with training data, default = test.txt")
+      println("--plot\t\t\t\t\tpath to output file with plot data, default = plot.txt")
+      println("--predictions\t\t\tpath to output file with predicted data, default = predictions.txt")
+      println("--window-size\t\t\tsize of window for accuracy calculating, default = 100")
+      println("--ngramms-sizes\t\t\tsize of ngramm comma separated without spaces, default = 3,4,5")
+      System.exit(0)
+    }
+
+    def getArg(argName: String): Option[String] = {
+      val indexOfArgName = args.indexOf(argName)
+      if (indexOfArgName != -1) {
+        Some(args(indexOfArgName + 1))
+      } else {
+        None
+      }
+    }
+
+    trainingSetFilePath = getArg("--training-set").getOrElse("test.txt")
+    plotFilePath = getArg("--plot").getOrElse("plot.txt")
+    predictionsFilePath = getArg("--predictions").getOrElse("predictions.txt")
+    ngrammSizes = getArg("--ngramms-sizes")
+      .map(string =>
+        string.split(',').map(_.toInt).toList.toArray)
+      .getOrElse(Array(3, 4, 5))
+    metricSliceSize = getArg("--training-set").map(_.toInt).getOrElse(100)
   }
 
   /**
@@ -84,6 +106,7 @@ object Bootloader {
 
   /**
     * Update each frequency table
+    *
     * @param binaries characters according that updates is done
     */
 
@@ -97,6 +120,7 @@ object Bootloader {
 
   /**
     * Calculate prediction accuracy for the slice
+    *
     * @param index     index of the last element of the calculating slice
     * @param sliceSize slice size
     * @return percent accuracy for the slice
