@@ -1,16 +1,43 @@
+# Binary prediction
 Simple machine learning project for prediction binary characters.
 
+## Description
+If you ask someone to randomly say zero or one for the long time and you keep the answers, then, after keeping enough amount of answers, you be able to predict next number (zero or one).
 
-If you will ask some man to randomly say zero or one for the long time and you will keep the answers, so after keeping enough count of answers next answer will can be predicted by machine learning algorithms.
+This project uses `ngramms` based algorithm.
 
+During keeping of answers, the algorithm builds the frequency tables of ngramms (length of ngramss can be tuned by code).
 
-This project use ngramms based algorithm.
+To predict a number, algorithm looks to the slice of the last answers and choose ngramms with bigger frequence
 
-While the answers keeping this algorithm build the frequency tables of ngramms with various size (tuning in code).
+Example:
+```
+Ngramm size = 2
+Answers: 010100
+Frequency table:
+00 - 1
+01 - 2
+10 - 2
+11 - 0
 
-To predict a binary it watch to the slice of the end of kept answers with size less than ngramm size by one. Then it choose most probable character from frequency table.
+Predict a number:
+01010(0..)
+Ngramm starts with '0'
+2 variants:
+1) 00 - frequency == 1
+2) 01 - frequency == 2
 
-For creating .jar archive use "assembly" sbt command.
-.jar archive is applied.
+Choose bigger frequency - 01
+So, the next number is '1'
+```
 
-For running .jar archive perform command "java -jar binary-predictions-assembly.jar --help" and follow instructions.
+## Build
+```
+sbt assembly
+```
+
+## Running
+```
+java -jar binary-predictions-assembly.jar --help
+#Follow instructions
+```
